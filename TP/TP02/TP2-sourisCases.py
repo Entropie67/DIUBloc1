@@ -1,4 +1,7 @@
-import pygame  
+##############################################################
+#                       Corrigé du TP 02                     #
+##############################################################
+import pygame
 from pygame.locals import *
 # importation des constantes de configuration
 from configuration import *
