@@ -36,17 +36,17 @@ try:
                     rouge += 16
                     if rouge > 255:
                         rouge = 0
-                    print("flèche vers le haut, rouge =",rouge)
+                    print("Flèche vers le haut, rouge =", rouge)
                 elif event.key == K_DOWN:
                     bleu -= 16
                     if bleu < 0:
                         bleu = 255
-                    print("flèche vers le bas, bleu =",bleu)
+                    print("Flèche vers le bas, bleu =", bleu)
                 elif event.key == K_ESCAPE:
-                    print("touche Escape")
+                    print("Touche Escape")
                     continuer = False
                 else :
-                    print("autre touche")
+                    print("Autre touche")
                 fenetre.fill((rouge, 0, bleu))
             elif event.type == MOUSEBUTTONDOWN :
                 (xclic,yclic) = event.pos
