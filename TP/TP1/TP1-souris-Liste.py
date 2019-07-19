@@ -10,11 +10,10 @@ from configuration import *
 
 pygame.init()
 
-
 fenetre=pygame.display.set_mode(TAILLE_FENETRE)
 pygame.display.set_caption("Test souris et clavier de pygame")
 
-rouge,vert,bleu = 0,0,255
+rouge, vert, bleu = 0, 0, 255
 
 fenetre.fill((rouge, vert, bleu))
 liste = []
@@ -49,7 +48,7 @@ while continuer:
                 print("Autre touche")
 
         elif event.type == MOUSEBUTTONDOWN :
-            (xclic,yclic) = event.pos
+            (xclic, yclic) = event.pos
             print("clic en ("+str(xclic)+","+str(yclic)+")")
 
         elif event.type == MOUSEMOTION :
