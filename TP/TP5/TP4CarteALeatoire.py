@@ -1,28 +1,4 @@
 from random import randrange,choice
-import pygame
-from pygame.locals import * 
-
-largeur = 21
-hauteur = 13
-taille = 60
-
-pygame.init()
-
-fenetre=pygame.display.set_mode((largeur*taille,hauteur*taille))
-pygame.display.set_caption("Creuser !")
-
-continuer=True
-
-carte=[]
-
-def bascule():
-        global carte
-        for l in range(hauteur):
-                for c in range(largeur):
-                        pygame.draw.rect(fenetre,(0,0,255*carte[l][c]),(taille*c,taille*l,taille,taille),0)
-        pygame.display.flip()
-        pygame.time.delay(200)
-
 
 def cartePLeineDeUns(largeur,hauteur):
     # une carte pleine de 1
@@ -60,7 +36,7 @@ def nbreCasesEncoreACreuser(carte,largeur,hauteur):
             somme+=carte[2*y+1][2*x+1]
     return somme
 
-def destinationsPossibles(carte,x,y,largeur,hauteur):
+def destinationsPossiblesSansZero(carte,x,y,largeur,hauteur):
     liste=[]
     if x+2<largeur-1 and carte[y][x+2]>0 :
         liste.append(0)
@@ -84,20 +60,11 @@ def destinationsPossiblesAvecZero(carte,x,y,largeur,hauteur):
         liste.append(1)
     return liste
 
-def creuseAutour(carte,x,y,largeur,hauteur) :
-    if x+1<largeur-1 : carte[y][x+1]=0
-    if x-1>0: carte[y][x-1]=0
-    if y+1<hauteur-1 : carte[y+1][x]=0
-    if y-1>0 : carte[y-2][x]>0
-
-def nouveauCheminDepuis(carte,x,y,largeur,hauteur,t):
+def nouveauCheminInitial(carte,largeur,hauteur,t):
+    x,y=origineInitiale(carte,largeur,hauteur)
     carte[y][x]=0
-    liste=destinationsPossibles(carte,x,y,largeur,hauteur)
-    if len(liste)==0:
-        #creuse encore un coup pour débugger
-        #creuseAutour(carte,x,y,largeur,hauteur)
-        return
-    else :
+    liste=destinationsPossiblesSansZero(carte,x,y,largeur,hauteur)
+    while len(liste)>0 and t>0 :
         choix=choice(liste)
         if choix==0:
             carte[y][x+1]=0
@@ -115,24 +82,20 @@ def nouveauCheminDepuis(carte,x,y,largeur,hauteur,t):
             carte[y+1][x]=0
             carte[y+2][x]=0
             x,y=x,y+2
-        #basculer
-        bascule()
-        if t>0 : nouveauCheminDepuis(carte,x,y,largeur,hauteur,t-1)
-        else : return
-    
-#ne marche pas  
-def nouveauCheminJusqueZeroPasDansCheminEnCours(carte,x0,y0,largeur,hauteur):
-    x,y=x0,y0 #pour rentrer dans while
+        t-=1
+        liste=destinationsPossiblesSansZero(carte,x,y,largeur,hauteur)
+    return carte
+        
+  
+def nouveauChemin(carte,largeur,hauteur):
+    x,y=origineInitiale(carte,largeur,hauteur) #pour rentrer dans while
     while carte[y][x]==0 :
         x,y=origineInitiale(carte,largeur,hauteur)
     ancienne=copieCarte(carte,largeur,hauteur)
-    while carte[y][x]>0 or not ancienne[y][x]==0:
+    while ancienne[y][x]>0:
         carte[y][x]=0
-        #print("debut chemin en",x,y)
-        #afficheCarte(carte,largeur,hauteur)
         liste=destinationsPossiblesAvecZero(carte,x,y,largeur,hauteur)
         choix=choice(liste)
-        #print(choix)
         if choix==0:
             carte[y][x+1]=0
             x,y=x+2,y
@@ -145,33 +108,22 @@ def nouveauCheminJusqueZeroPasDansCheminEnCours(carte,x0,y0,largeur,hauteur):
         else :
             carte[y+1][x]=0
             x,y=x,y+2
-        #basculer
-        bascule()
-        
-def newCarte(largeur,hauteur):      
-    global carte
-    carte=cartePLeineDeUns(largeur,hauteur)
-    #afficheCarte(carte,largeur,hauteur)
-    if nbreCasesEncoreACreuser(carte,largeur,hauteur) >0 :
-        x0,y0=origineInitiale(carte,largeur,hauteur)
-        t=((largeur)//2*(hauteur)//2)//3
-        nouveauCheminDepuis(carte,x0,y0,largeur,hauteur,t)
-    #afficheCarte(carte,largeur,hauteur)
-    while nbreCasesEncoreACreuser(carte,largeur,hauteur) >0 :
-        nouveauCheminJusqueZeroPasDansCheminEnCours(carte,x0,y0,largeur,hauteur)
-        #afficheCarte(carte,largeur,hauteur)
-
     return carte
+        
+def newCarte(largeur,hauteur):
 
-def newCarteAvecDepartEtArrivee(largeur,hauteur):
-    nouvelle=newCarte(largeur,hauteur)
-    x,y=2*randrange(largeur//2)+1,0
-    nouvelle[y][x]=3
-    x,y=2*randrange(hauteur//2)+1,hauteur-1
-    nouvelle[y][x]=4252
-    return nouvelle
+    # Une grille initiale pleine de uns
+    grille=cartePLeineDeUns(largeur,hauteur)
+    
+    # Une estimation de la longueur maximale du premier chemin
+    # formule improvisée : un petit tiers des sommets oranges
+    t=((largeur)//2*(hauteur)//2)//3
 
-carte=newCarte(largeur,hauteur)
-
-pygame.quit()
-
+    # On creuse le chemin initial
+    grille=nouveauCheminInitial(grille,largeur,hauteur,t)
+    
+    # Des tours de boucle
+    while nbreCasesEncoreACreuser(grille,largeur,hauteur) >0 :
+        grille=nouveauChemin(grille,largeur,hauteur)
+    
+    return grille
